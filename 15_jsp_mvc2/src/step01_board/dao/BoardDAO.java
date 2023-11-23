@@ -20,6 +20,7 @@ public class BoardDAO {
 		return instance;
 	}
 	
+	
 	private Connection conn         = null;
 	private PreparedStatement pstmt = null;
 	private ResultSet rs            = null;
@@ -54,7 +55,7 @@ public class BoardDAO {
 		
 			Context initctx = new InitialContext();
 			Context envctx = (Context) initctx.lookup("java:comp/env"); // lookup 메서드를 통해 context.xml 파일에 접근하여 자바환경 코드를 검색
-			DataSource ds = (DataSource) envctx.lookup("jdbc/board"); 	// <Context>태그안의 <Resource> 환경설정의 name이 jdbc/board인 것을 검색
+			DataSource ds = (DataSource) envctx.lookup("jdbc/board");   // <Context>태그안의 <Resource> 환경설정의 name이 jdbc/board인 것을 검색
 			conn = ds.getConnection();
 			
 		} catch (Exception e) {
@@ -63,20 +64,21 @@ public class BoardDAO {
 		
 	}
 	
+	
 	private void getClose() {
-		if (rs != null) try {rs.close();} catch (SQLException e) {e.printStackTrace();}
+		if (rs != null)    try {rs.close();} catch (SQLException e) {e.printStackTrace();}
 		if (pstmt != null) try {pstmt.close();} catch (SQLException e) {e.printStackTrace();}
-		if (conn != null) try {conn.close();} catch (SQLException e) {e.printStackTrace();}
+		if (conn != null)  try {conn.close();} catch (SQLException e) {e.printStackTrace();}
 	}
 	
 	
 	public void insertBoard(BoardDTO boardDTO) {
 		
 		try {
-
+			
 			getConnection();
 			
-			String sql = "INSERT INTO BOARD(WRITER,EMAIL,SUBJECT,PASSWORD,CONTENT,READ_CNT,ENROLL_DT) VALUES (?,?,?,?,?,0,NOW())";
+			String sql = "INSERT INTO BOARD (WRITER,EMAIL,SUBJECT,PASSWORD,CONTENT,READ_CNT,ENROLL_DT) VALUES (?,?,?,?,?,0,NOW())";
 			
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, boardDTO.getWriter());
@@ -84,23 +86,23 @@ public class BoardDAO {
 			pstmt.setString(3, boardDTO.getSubject());
 			pstmt.setString(4, boardDTO.getPassword());
 			pstmt.setString(5, boardDTO.getContent());
-			
 			pstmt.executeUpdate();
-			
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
 			getClose();
 		}
+		
 	}
+	
 	
 	public ArrayList<BoardDTO> getBoardList() {
 		
 		ArrayList<BoardDTO> boardList = new ArrayList<BoardDTO>();
 		
 		try {
-
+			
 			getConnection();
 			
 			pstmt = conn.prepareStatement("SELECT * FROM BOARD");
@@ -115,6 +117,7 @@ public class BoardDAO {
 				temp.setReadCnt(rs.getLong("READ_CNT"));
 				temp.setEnrollDt(rs.getDate("ENROLL_DT"));
 				boardList.add(temp);
+				
 			}
 			
 		} catch (Exception e) {
@@ -123,15 +126,19 @@ public class BoardDAO {
 			getClose();
 		}
 		
-		System.out.println(boardList);
+		//System.out.println(boardList);
 		
 		return boardList;
+		
 	}
 	
+	
 	public BoardDTO getBoardDetail(long boardId) {
+		
 		BoardDTO boardDTO = new BoardDTO();
 		
 		try {
+			
 			getConnection();
 			
 			pstmt = conn.prepareStatement("UPDATE BOARD SET READ_CNT = READ_CNT + 1 WHERE BOARD_ID = ?");
@@ -151,6 +158,7 @@ public class BoardDAO {
 				boardDTO.setContent(rs.getString("CONTENT"));
 				boardDTO.setReadCnt(rs.getLong("READ_CNT"));
 				boardDTO.setEnrollDt(rs.getDate("ENROLL_DT"));
+				
 			}
 			
 		} catch (Exception e) {
@@ -159,9 +167,83 @@ public class BoardDAO {
 			getClose();
 		}
 		
-		System.out.println(boardDTO);
+		//System.out.println(boardDTO);
 		
 		return boardDTO;
+		
 	}
 	
+	
+	public boolean checkAuthorizedUser(BoardDTO boardDTO) {
+		
+		boolean isAuthorizedUser = false;
+		
+		try {
+			
+			getConnection();
+			
+			pstmt = conn.prepareStatement("SELECT * FROM BOARD WHERE BOARD_ID = ? AND PASSWORD = ?");
+			pstmt.setLong(1, boardDTO.getBoardId());
+			pstmt.setString(2, boardDTO.getPassword());
+			
+			rs = pstmt.executeQuery();
+			
+			if (rs.next()) {
+				isAuthorizedUser = true;
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			getClose();
+		}
+		
+		return isAuthorizedUser;
+		
+	}
+	
+	
+	public void updateBoard(BoardDTO boardDTO) {
+	
+		try {
+			
+			getConnection();
+			
+			pstmt = conn.prepareStatement("UPDATE BOARD SET SUBJECT = ? , CONTENT = ? WHERE BOARD_ID = ?");
+			pstmt.setString(1, boardDTO.getSubject());
+			pstmt.setString(2, boardDTO.getContent());
+			pstmt.setLong(3, boardDTO.getBoardId());
+			pstmt.executeUpdate();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			getClose();
+		}
+		
+	}
+	
+	
+	public void deleteBoard(long boardId) {
+		
+		try {
+			
+			getConnection();
+			pstmt = conn.prepareStatement("DELETE FROM BOARD WHERE BOARD_ID = ?");
+			pstmt.setLong(1, boardId);
+			pstmt.executeUpdate();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			getClose();
+		}
+	}
+	
+	
+	
 }
+
+
+
+

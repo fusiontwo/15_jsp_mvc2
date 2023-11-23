@@ -1,4 +1,4 @@
-package step01_board.controller;
+package step03_boardAdvanced.controller;
 
 import java.io.IOException;
 
@@ -9,18 +9,15 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import step01_board.dao.BoardDAO;
 
-@WebServlet("/bList")
-public class ListBoard extends HttpServlet {
+@WebServlet("/boardMain")
+public class BoardMain extends HttpServlet {
 	
 	private static final long serialVersionUID = 1L;
-	
+       
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
-		request.setAttribute("boardList" , BoardDAO.getInstance().getBoardList());
-		
-		RequestDispatcher dis = request.getRequestDispatcher("step01_boardEx/bList.jsp");
+		RequestDispatcher dis = request.getRequestDispatcher("step03_boardAdvancedEx/board/boardMain.jsp");
 		dis.forward(request, response);
 		
 	}
